@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import {
@@ -16,10 +16,15 @@ import { FaArrowUp } from "react-icons/fa6";
 import ChatBox from "./components/chat/ChatBox";
 
 function App() {
+  const bottom = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState<string>("");
   const [messages, setMessages] = useState<string[]>([
     "Hi, how may I help you?",
   ]);
+
+  useEffect(() => {
+    bottom.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, bottom]);
 
   const addMessages = (...newMessages: string[]) =>
     setMessages([...messages, ...newMessages]);
@@ -43,6 +48,7 @@ function App() {
           <Divider />
           <CardBody>
             <ChatBox messages={messages} />
+            <div ref={bottom} />
           </CardBody>
           <Divider />
           <CardFooter>
