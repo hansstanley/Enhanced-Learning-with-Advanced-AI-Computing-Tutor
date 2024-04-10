@@ -14,6 +14,31 @@ import {
 import { FaArrowUp } from 'react-icons/fa6';
 import logo from '../../logo.svg';
 
+async function* streamCompletion() {
+  const message =
+    'Aliquip eiusmod laboris do et exercitation pariatur dolore nulla officia dolor magna.';
+  const words = message.split(' ');
+  for (const word of words) {
+    yield ' ' + word;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
+
+function addToLastMessage(
+  messages: ChatMessage[],
+  chunk: string
+): ChatMessage[] {
+  if (messages.length === 0) {
+    return [];
+  }
+
+  const { role, content } = messages[messages.length - 1];
+  return [
+    ...messages.slice(0, messages.length - 1),
+    { role, content: content + chunk },
+  ];
+}
+
 export default function ChatBox() {
   const bottom = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState<string>('');
@@ -22,13 +47,19 @@ export default function ChatBox() {
   ]);
 
   const addMessages = (...newMessages: ChatMessage[]) =>
-    setMessages([...messages, ...newMessages]);
+    setMessages((messages) => [...messages, ...newMessages]);
 
-  const handleSubmitInput = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmitInput = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (input.trim()) {
-      addMessages({ role: 'user', content: input.trim() });
+      addMessages(
+        { role: 'user', content: input.trim() },
+        { role: 'assistant', content: '' }
+      );
       setInput('');
+    }
+    for await (let chunk of streamCompletion()) {
+      setMessages((messages) => addToLastMessage(messages, chunk));
     }
   };
 
@@ -44,7 +75,7 @@ export default function ChatBox() {
       </CardHeader>
       <Divider />
       <CardBody>
-        <div className="flex flex-col gap-2 w-full">
+        <div className="flex flex-col gap-4 w-full">
           {messages.map((m, i) => (
             <ChatBubble
               key={i}
