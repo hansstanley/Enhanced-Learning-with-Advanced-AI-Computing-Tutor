@@ -44,7 +44,7 @@ collection = client.get_or_create_collection(
 )
 
 # paths of documents to index
-helpsheet_dir = r"documents/helpsheet collection"
+helpsheet_dir = r"testDocs/helpsheet collection"
 helpsheet_paths = [
     f
     for f in os.listdir(helpsheet_dir)
@@ -93,10 +93,10 @@ tools = [retriever_tool]
 # Initialise agent #
 ####################
 
-instructions = """You are an AI computer science tutor for CS2040S data structure and algorithms at Nationa
+instructions = """You are an AI computer science tutor for CS2040S data structure and algorithms at National
 University of Singapore. you have access to textbook references.
 Be concise and ensure output is maximum of 5 sentences.
-If  cannot answer the question, do not use any tools, just return "I don't know" as the answer.
+If you cannot answer the question, do not use any tools, just return "I don't know" as the answer.
 """
 
 base_prompt = hub.pull("langchain-ai/react-agent-template")
@@ -107,7 +107,7 @@ prompt = base_prompt.partial(instructions=instructions)
 
 agent = create_react_agent(llm=llm, tools = tools, prompt = prompt)
     
-agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True, max_iterations=3, handle_parsing_error = True)
+agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True, max_iterations=3, handle_parsing_errors = True)
 
 message_history = ChatMessageHistory()
 
@@ -120,6 +120,6 @@ agent_with_chat_history = RunnableWithMessageHistory(
     history_messages_key="chat_history",
 )
 
-agent_with_chat_history.invoke({"input": "what are the key principles behind a MST"}, {"configurable": {"session_id": "abc123"}})
-
+agent_with_chat_history.invoke({"input": "what is a MST"}, {"configurable": {"session_id": "abc123"}})
+print(message_history)
 print('success')
