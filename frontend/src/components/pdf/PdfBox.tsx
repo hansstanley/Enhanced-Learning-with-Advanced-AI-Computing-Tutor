@@ -1,8 +1,9 @@
-import { Card, CardHeader } from '@nextui-org/react';
-import { Document, Page, pdfjs } from 'react-pdf';
+import { Card, CardBody } from '@nextui-org/react';
+import { pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import samplePdf from './sample.pdf';
+import PdfView from './PdfView';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.js',
@@ -12,11 +13,9 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 export default function PdfBox() {
   return (
     <Card className="max-w-2xl w-full h-full">
-      <CardHeader className="w-full h-full">
-        <Document className="w-full h-full overflow-auto" file={samplePdf}>
-          <Page pageNumber={1} />
-        </Document>
-      </CardHeader>
+      <CardBody className="flex flex-col w-full h-full">
+        <PdfView file={samplePdf} />
+      </CardBody>
     </Card>
   );
 }
