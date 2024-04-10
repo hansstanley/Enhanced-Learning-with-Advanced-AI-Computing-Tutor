@@ -16,10 +16,10 @@ export default function PdfView({ file, defaultPage }: PdfViewProps) {
   const nextPage = () => setPage(Math.min(page + 1, pageCount - 1));
 
   return (
-    <Card isFooterBlurred className="relative w-full h-full">
-      <CardBody className="w-full h-full">
+    <Card isFooterBlurred className="relative">
+      <CardBody>
         <Document
-          className="w-full h-full overflow-auto"
+          className="overflow-auto"
           file={file}
           onLoadSuccess={({ numPages }) => setPageCount(numPages)}
         >

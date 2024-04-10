@@ -1,4 +1,4 @@
-import { Card, CardBody } from '@nextui-org/react';
+import { Card, CardBody, Tab, Tabs } from '@nextui-org/react';
 import { pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -13,8 +13,15 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 export default function PdfBox() {
   return (
     <Card className="max-w-2xl w-full h-full">
-      <CardBody className="flex flex-col w-full h-full">
-        <PdfView file={samplePdf} />
+      <CardBody>
+        <Tabs>
+          <Tab title="PDF 1">
+            <PdfView file={samplePdf} />
+          </Tab>
+          <Tab title="PDF 2">
+            <PdfView file={samplePdf} />
+          </Tab>
+        </Tabs>
       </CardBody>
     </Card>
   );
