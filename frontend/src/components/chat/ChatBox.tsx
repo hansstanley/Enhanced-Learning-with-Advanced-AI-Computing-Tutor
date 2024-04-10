@@ -39,15 +39,19 @@ function addToLastMessage(
   ];
 }
 
+const defaultMessages: ChatMessage[] = [
+  { role: 'assistant', content: 'Hi, how may I help you?' },
+];
+
 export default function ChatBox() {
   const bottom = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState<string>('');
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: 'Hi, how may I help you?' },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>(defaultMessages);
 
   const addMessages = (...newMessages: ChatMessage[]) =>
     setMessages((messages) => [...messages, ...newMessages]);
+
+  const clearMessages = () => setMessages(defaultMessages);
 
   const handleSubmitInput = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -69,9 +73,14 @@ export default function ChatBox() {
 
   return (
     <Card className="max-w-2xl w-full h-full">
-      <CardHeader className="flex gap-2">
-        <Image alt="logo" width={32} height={32} radius="sm" src={logo} />
-        <p className="text-base font-bold">CS Tutor</p>
+      <CardHeader className="flex flex-row justify-between gap-2">
+        <div className="flex flex-row gap-2">
+          <Image alt="logo" width={32} height={32} radius="sm" src={logo} />
+          <p className="text-base font-bold">CS Tutor</p>
+        </div>
+        <Button onClick={clearMessages} isDisabled={messages.length < 2}>
+          Reset
+        </Button>
       </CardHeader>
       <Divider />
       <CardBody>
@@ -100,9 +109,15 @@ export default function ChatBox() {
             placeholder="Ask anything"
             autoComplete="off"
             value={input}
+            onClear={() => setInput('')}
             onChange={(e) => setInput(e.target.value)}
           />
-          <Button isIconOnly color="primary" type="submit">
+          <Button
+            isIconOnly
+            isDisabled={input.length === 0}
+            color="primary"
+            type="submit"
+          >
             <FaArrowUp />
           </Button>
         </form>
