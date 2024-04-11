@@ -16,7 +16,7 @@ import logo from '../../logo.svg';
 
 async function* streamCompletion() {
   const message =
-    'Aliquip eiusmod laboris do et exercitation pariatur dolore nulla officia dolor magna.';
+    'Aliquip eiusmod laboris do et `exercitation` pariatur dolore nulla officia dolor magna.';
   const words = message.split(' ');
   for (const word of words) {
     yield ' ' + word;
@@ -46,6 +46,7 @@ const defaultMessages: ChatMessage[] = [
 export default function ChatBox() {
   const bottom = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState<string>('');
+  const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(defaultMessages);
 
   const addMessages = (...newMessages: ChatMessage[]) =>
@@ -55,6 +56,7 @@ export default function ChatBox() {
 
   const handleSubmitInput = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
     if (input.trim()) {
       addMessages(
         { role: 'user', content: input.trim() },
@@ -65,6 +67,7 @@ export default function ChatBox() {
     for await (let chunk of streamCompletion()) {
       setMessages((messages) => addToLastMessage(messages, chunk));
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -78,7 +81,10 @@ export default function ChatBox() {
           <Image alt="logo" width={32} height={32} radius="sm" src={logo} />
           <p className="text-base font-bold">CS Tutor</p>
         </div>
-        <Button onClick={clearMessages} isDisabled={messages.length < 2}>
+        <Button
+          onClick={clearMessages}
+          isDisabled={loading || messages.length < 2}
+        >
           Reset
         </Button>
       </CardHeader>

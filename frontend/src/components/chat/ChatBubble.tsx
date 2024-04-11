@@ -1,4 +1,6 @@
-import { Card, CardBody } from "@nextui-org/react";
+import { Card, CardBody } from '@nextui-org/react';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export interface ChatBubbleProps {
   message: string;
@@ -11,10 +13,10 @@ export default function ChatBubble({
 }: ChatBubbleProps) {
   return (
     <Card
-      className={isUser ? "self-end ml-4 bg-primary-50" : "self-start mr-4"}
+      className={isUser ? 'self-end ml-4 bg-primary-50' : 'self-start mr-4'}
     >
       <CardBody>
-        <p>{message}</p>
+        <Markdown remarkPlugins={[remarkGfm]}>{message}</Markdown>
       </CardBody>
     </Card>
   );
