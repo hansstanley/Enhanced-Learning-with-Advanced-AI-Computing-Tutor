@@ -22,7 +22,7 @@ export default function PdfBox({ docs }: PdfBoxProps) {
           {docs.length === 0
             ? null
             : docs.map((d, i) => (
-                <Tab key={i} title={`PDF ${i}`}>
+                <Tab key={i} title={`Source ${i + 1}`}>
                   <PdfView
                     file={require(`../../${d.source}`)}
                     defaultPage={d.page}

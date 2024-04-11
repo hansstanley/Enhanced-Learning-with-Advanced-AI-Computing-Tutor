@@ -26,19 +26,21 @@ export default function PdfView({ file, defaultPage }: PdfViewProps) {
           <Page pageIndex={page} />
         </Document>
       </CardBody>
-      <CardFooter className="absolute bg-white/50 w-fit z-10 bottom-4 left-1/2 -translate-x-1/2 shadow-md rounded-xl">
-        <Button isIconOnly onClick={prevPage} isDisabled={page === 0}>
-          <FaAngleLeft />
-        </Button>
-        <p className="text-sm mx-4">{page + 1}</p>
-        <Button
-          isIconOnly
-          onClick={nextPage}
-          isDisabled={page === pageCount - 1}
-        >
-          <FaAngleRight />
-        </Button>
-      </CardFooter>
+      <Card className="absolute w-fit z-10 top-4 right-4">
+        <CardBody className="flex flex-row items-center gap-4">
+          <Button isIconOnly onClick={prevPage} isDisabled={page === 0}>
+            <FaAngleLeft />
+          </Button>
+          <p className="text-sm">{page + 1}</p>
+          <Button
+            isIconOnly
+            onClick={nextPage}
+            isDisabled={page === pageCount - 1}
+          >
+            <FaAngleRight />
+          </Button>
+        </CardBody>
+      </Card>
     </Card>
   );
 }
