@@ -14,31 +14,72 @@ import {
 import { FaArrowUp } from 'react-icons/fa6';
 import logo from '../../logo.svg';
 
-async function* streamCompletion() {
-  const message =
-    'Aliquip eiusmod laboris do et `exercitation` pariatur dolore nulla officia dolor magna.';
-  const words = message.split(' ');
-  for (const word of words) {
-    yield ' ' + word;
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
+const API_URL = process.env.REACT_APP_API;
+
+function instanceOfChatMeta(obj: any): obj is ChatMeta {
+  return 'docs' in obj;
 }
 
-async function queryCompletion() {
-  const meta: ChatMeta = {
-    docs: [
-      {
-        page: 0,
-        source: 'documents/helpsheet collection/cs3230-cheatsheet.pdf',
-      },
-      {
-        page: 4,
-        source:
-          'documents/helpsheet collection/11 - Graph Operations and Analysis.pdf',
-      },
-    ],
-  };
-  return { ...meta, answer: streamCompletion() };
+function instanceOfChatMessage(obj: any): obj is ChatMessage {
+  return 'content' in obj;
+}
+
+async function readNext(reader: ReadableStreamDefaultReader<Uint8Array>) {
+  const { done, value } = await reader.read();
+  const text = new TextDecoder().decode(value);
+  return { done, text };
+}
+
+async function query(query: string): Promise<{
+  docs?: DocMeta[];
+  answer?: AsyncGenerator<string, void, unknown>;
+}> {
+  const res = await fetch(new URL('/chat', API_URL), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query }),
+  });
+  if (!res.body) {
+    return {};
+  }
+  const reader = res.body.getReader();
+
+  let done = false;
+  let text = '';
+  let docs: DocMeta[] | undefined;
+  let firstChunk = '';
+  while (!done) {
+    ({ done, text } = await readNext(reader));
+    if (!text) {
+      break;
+    }
+    const obj = JSON.parse(text);
+    if (instanceOfChatMeta(obj)) {
+      docs = obj.docs;
+    } else if (instanceOfChatMessage(obj)) {
+      firstChunk = obj.content;
+      break;
+    }
+  }
+
+  async function* stream() {
+    if (firstChunk) {
+      yield firstChunk;
+    }
+    let done = false;
+    while (!done) {
+      ({ done, text } = await readNext(reader));
+      if (!text) {
+        break;
+      }
+      const obj = JSON.parse(text);
+      if (instanceOfChatMessage(obj)) {
+        yield obj.content;
+      }
+    }
+  }
+
+  return { docs, answer: stream() };
 }
 
 function addToLastMessage(
@@ -78,18 +119,18 @@ export default function ChatBox({ onDocsChange = () => {} }: ChatBoxProps) {
   const handleSubmitInput = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    if (input.trim()) {
-      addMessages(
-        { role: 'user', content: input.trim() },
-        { role: 'assistant', content: '' }
-      );
-      setInput('');
-    }
+    addMessages(
+      { role: 'user', content: input },
+      { role: 'assistant', content: '' }
+    );
+    setInput('');
 
-    const { answer, docs } = await queryCompletion();
+    const { docs, answer } = await query(input);
     onDocsChange(docs || []);
-    for await (let chunk of answer) {
-      setMessages((messages) => addToLastMessage(messages, chunk));
+    if (answer) {
+      for await (let chunk of answer) {
+        setMessages((messages) => addToLastMessage(messages, chunk));
+      }
     }
   };
 
