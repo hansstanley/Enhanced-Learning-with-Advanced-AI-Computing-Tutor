@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import ChatBubble from './ChatBubble';
-import { ChatMessage } from '../../types';
+import { ChatMessage, ChatMeta, DocMeta } from '../../types';
 import {
   Button,
   Card,
@@ -24,6 +24,23 @@ async function* streamCompletion() {
   }
 }
 
+async function queryCompletion() {
+  const meta: ChatMeta = {
+    docs: [
+      {
+        page: 0,
+        source: 'documents/helpsheet collection/cs3230-cheatsheet.pdf',
+      },
+      {
+        page: 4,
+        source:
+          'documents/helpsheet collection/11 - Graph Operations and Analysis.pdf',
+      },
+    ],
+  };
+  return { ...meta, answer: streamCompletion() };
+}
+
 function addToLastMessage(
   messages: ChatMessage[],
   chunk: string
@@ -43,7 +60,11 @@ const defaultMessages: ChatMessage[] = [
   { role: 'assistant', content: 'Hi, how may I help you?' },
 ];
 
-export default function ChatBox() {
+export interface ChatBoxProps {
+  onDocsChange?: (docs: DocMeta[]) => void;
+}
+
+export default function ChatBox({ onDocsChange = () => {} }: ChatBoxProps) {
   const bottom = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -64,10 +85,12 @@ export default function ChatBox() {
       );
       setInput('');
     }
-    for await (let chunk of streamCompletion()) {
+
+    const { answer, docs } = await queryCompletion();
+    onDocsChange(docs || []);
+    for await (let chunk of answer) {
       setMessages((messages) => addToLastMessage(messages, chunk));
     }
-    setLoading(false);
   };
 
   useEffect(() => {

@@ -2,25 +2,33 @@ import { Card, CardBody, Tab, Tabs } from '@nextui-org/react';
 import { pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
-import samplePdf from './sample.pdf';
 import PdfView from './PdfView';
+import { DocMeta } from '../../types';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.js',
   import.meta.url
 ).toString();
 
-export default function PdfBox() {
+export interface PdfBoxProps {
+  docs: DocMeta[];
+}
+
+export default function PdfBox({ docs }: PdfBoxProps) {
   return (
     <Card className="max-w-2xl w-full h-full">
       <CardBody>
         <Tabs>
-          <Tab title="PDF 1">
-            <PdfView file={samplePdf} />
-          </Tab>
-          <Tab title="PDF 2">
-            <PdfView file={samplePdf} />
-          </Tab>
+          {docs.length === 0
+            ? null
+            : docs.map((d, i) => (
+                <Tab key={i} title={`PDF ${i}`}>
+                  <PdfView
+                    file={require(`../../${d.source}`)}
+                    defaultPage={d.page}
+                  />
+                </Tab>
+              ))}
         </Tabs>
       </CardBody>
     </Card>
