@@ -8,11 +8,13 @@ import { DocMeta } from './types';
 function App() {
   const [docs, setDocs] = useState<DocMeta[]>([]);
 
+  const hidePdfBox = docs.length === 0;
+
   return (
     <NextUIProvider>
       <div className="flex flex-row justify-center h-screen p-8 gap-8">
         <ChatBox onDocsChange={(docs) => setDocs(docs)} />
-        <PdfBox docs={docs} />
+        {hidePdfBox || <PdfBox docs={docs} />}
       </div>
     </NextUIProvider>
   );

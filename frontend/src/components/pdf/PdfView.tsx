@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardFooter } from '@nextui-org/react';
+import { Button, Card, CardBody } from '@nextui-org/react';
 import { useState } from 'react';
 import { FaAngleLeft, FaAngleRight } from 'react-icons/fa6';
 import { Document, Page } from 'react-pdf';

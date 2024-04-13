@@ -114,7 +114,10 @@ export default function ChatBox({ onDocsChange = () => {} }: ChatBoxProps) {
   const addMessages = (...newMessages: ChatMessage[]) =>
     setMessages((messages) => [...messages, ...newMessages]);
 
-  const clearMessages = () => setMessages(defaultMessages);
+  const clearMessages = () => {
+    setMessages(defaultMessages);
+    onDocsChange([]);
+  };
 
   const handleSubmitInput = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -132,6 +135,7 @@ export default function ChatBox({ onDocsChange = () => {} }: ChatBoxProps) {
         setMessages((messages) => addToLastMessage(messages, chunk));
       }
     }
+    setLoading(false);
   };
 
   useEffect(() => {
