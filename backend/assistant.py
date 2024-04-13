@@ -3,6 +3,8 @@ import typing
 
 from pydantic import BaseModel
 
+import rag_chain
+
 
 class ChatRequest(BaseModel):
     query: str
@@ -29,17 +31,35 @@ async def fake_answer(message: str) -> typing.AsyncGenerator[str, None]:
 
 
 class Assistant:
-    async def query(self, message: str):  # TODO
-        return [
-            DocMeta(
-                page=2,
-                source="documents/LN/02.Java-OOP.pdf",
-            ),
-            DocMeta(
-                page=3,
-                source="documents/LN/06.SortingB.pdf",
-            ),
-        ], fake_answer(message)
+    async def query(self, message: str, use_agent=False):
+        stream = await rag_chain.query(message)
+        docs = []
+        first_ans = ""
+        while (chunk := await anext(stream, None)) is not None:
+            if "context" in chunk:
+                docs.extend(
+                    [
+                        DocMeta(
+                            page=d.metadata["page"],
+                            source=d.metadata["source"],
+                        )
+                        for d in chunk["context"]
+                    ]
+                )
+            elif "answer" in chunk:
+                first_ans = chunk["answer"]
+                break
+            else:
+                print(chunk)
 
-    async def clear_history(self):  # TODO
-        pass
+        async def answer_stream():
+            if first_ans:
+                yield first_ans
+            while (chunk := await anext(stream, None)) is not None:
+                if "answer" in chunk:
+                    yield chunk["answer"]
+
+        return docs, answer_stream()
+
+    async def clear_history(self):
+        rag_chain.clear_history()
