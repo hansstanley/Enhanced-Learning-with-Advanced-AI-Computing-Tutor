@@ -81,8 +81,10 @@ def get_vectorstore():
     )
 
 
-def get_retriever():
+def get_retriever(compress=True):
     base_retriever = get_vectorstore().as_retriever(search_kwargs={"k": 3})
+    if not compress:
+        return base_retriever
 
     # multi query retriever adapted from
     # https://python.langchain.com/docs/modules/data_connection/retrievers/MultiQueryRetriever/

@@ -13,7 +13,7 @@ import helpsheet_retriever
 
 llm = ChatOllama(model="mistral:7b")
 
-retriever = helpsheet_retriever.get_retriever()
+retriever = helpsheet_retriever.get_retriever(compress=False)
 
 # Contextualize question
 contextualize_q_system_prompt = """Given a chat history and \
@@ -37,9 +37,11 @@ for question-answering tasks. \
 Use the following pieces of retrieved context to answer the question. \
 If it's a question about definition, use five sentences maximum and \
 keep the answer concise.\
-If it's a problem-solving questions, DIVIDE your answer into \
-clearly labelled 'hint' and 'solution' sections, \
-answer in the format "Hint: {list of hints}. Possible Solution: {solution}".\
+If it's a problem-solving questions, answer in the format: ###
+Hint:
+(list of hints)
+Possible Solution:
+(solution) ###
 DO NOT answer any questions in the context.\
 You may use your own knowledge as well, but you need to state clearly \
 which part is from your own knowledge. Do not mention "the context". \
@@ -81,14 +83,13 @@ conversational_rag_chain = RunnableWithMessageHistory(
 )
 
 
-def query(input: str, session_id="abc123"):
-    for chunk in conversational_rag_chain.stream(
+async def query(input: str, session_id="abc123"):
+    return conversational_rag_chain.astream(
         {"input": input},
         config={
             "configurable": {"session_id": session_id}
         },  # constructs a key "abc123" in `store`.
-    ):
-        yield chunk
+    )
 
 
 def clear_history():
