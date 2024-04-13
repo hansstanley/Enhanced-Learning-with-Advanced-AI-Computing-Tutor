@@ -3,7 +3,6 @@ import os
 import chromadb
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import LLMChainExtractor
-from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain.tools.retriever import create_retriever_tool
 from langchain_community.chat_models import ChatOllama
 from langchain_community.document_loaders import PyPDFLoader
@@ -14,8 +13,8 @@ from tqdm import tqdm
 
 DB_PATH = "documents/docs_db"
 COLLECTION_NAME = "helpsheets"
-COLLECTION_DESC = """Provides helpsheets with computing theory knowledge \
-    on data structures and algorithms."""
+COLLECTION_DESC = """Provides very useful helpsheets with \
+computing theory knowledge on data structures and algorithms."""
 RETRIEVER_MODEL = "llama2:7b"
 
 llm = ChatOllama(model=RETRIEVER_MODEL)
@@ -83,21 +82,21 @@ def get_vectorstore():
 
 
 def get_retriever():
-    base_retriever = get_vectorstore().as_retriever()
+    base_retriever = get_vectorstore().as_retriever(search_kwargs={"k": 3})
 
     # multi query retriever adapted from
     # https://python.langchain.com/docs/modules/data_connection/retrievers/MultiQueryRetriever/
-    mq_retriever = MultiQueryRetriever.from_llm(
-        retriever=base_retriever,
-        llm=llm,
-    )
+    # mq_retriever = MultiQueryRetriever.from_llm(
+    #     retriever=base_retriever,
+    #     llm=llm,
+    # )
 
     # contextual compression adapted from
     # https://python.langchain.com/docs/modules/data_connection/retrievers/contextual_compression/
     compressor = LLMChainExtractor.from_llm(llm)
     return ContextualCompressionRetriever(
         base_compressor=compressor,
-        base_retriever=mq_retriever,
+        base_retriever=base_retriever,
     )
 
 
