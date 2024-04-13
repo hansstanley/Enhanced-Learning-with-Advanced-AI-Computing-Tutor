@@ -1,4 +1,4 @@
-import { Card, CardBody } from '@nextui-org/react';
+import { Card, CardBody, Skeleton } from '@nextui-org/react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -11,12 +11,16 @@ export default function ChatBubble({
   message,
   isUser = false,
 }: ChatBubbleProps) {
+  const isLoaded = !!message;
   return (
     <Card
       className={isUser ? 'self-end ml-4 bg-primary-50' : 'self-start mr-4'}
     >
       <CardBody>
-        <Markdown remarkPlugins={[remarkGfm]}>{message}</Markdown>
+        <Skeleton isLoaded={isLoaded} className="rounded-md">
+          {isLoaded || <p className="text-base">Loading...</p>}
+          <Markdown remarkPlugins={[remarkGfm]}>{message}</Markdown>
+        </Skeleton>
       </CardBody>
     </Card>
   );
