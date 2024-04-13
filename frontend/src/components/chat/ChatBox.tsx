@@ -31,6 +31,13 @@ async function readNext(reader: ReadableStreamDefaultReader<Uint8Array>) {
   return { done, text };
 }
 
+async function clearHistory() {
+  await fetch(new URL('/chat/clear', API_URL), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
 async function query(query: string): Promise<{
   docs?: DocMeta[];
   answer?: AsyncGenerator<string, void, unknown>;
@@ -54,7 +61,14 @@ async function query(query: string): Promise<{
     if (!text) {
       break;
     }
-    const obj = JSON.parse(text);
+    let obj;
+    try {
+      obj = JSON.parse(text);
+    } catch (err) {
+      console.log('bad json', text);
+      console.error(err);
+      break;
+    }
     if (instanceOfChatMeta(obj)) {
       docs = obj.docs;
     } else if (instanceOfChatMessage(obj)) {
@@ -73,7 +87,14 @@ async function query(query: string): Promise<{
       if (!text) {
         break;
       }
-      const obj = JSON.parse(text);
+      let obj;
+      try {
+        obj = JSON.parse(text);
+      } catch (err) {
+        console.log('bad json', text);
+        console.error(err);
+        break;
+      }
       if (instanceOfChatMessage(obj)) {
         yield obj.content;
       }
@@ -115,9 +136,11 @@ export default function ChatBox({ onDocsChange = () => {} }: ChatBoxProps) {
   const addMessages = (...newMessages: ChatMessage[]) =>
     setMessages((messages) => [...messages, ...newMessages]);
 
-  const clearMessages = () => {
+  const clearMessages = async () => {
     setMessages(defaultMessages);
     onDocsChange([]);
+
+    await clearHistory();
   };
 
   const handleSubmitInput = async (e: FormEvent<HTMLFormElement>) => {
