@@ -10,6 +10,7 @@ import {
   Divider,
   Image,
   Input,
+  Spacer,
 } from '@nextui-org/react';
 import { FaArrowUp } from 'react-icons/fa6';
 import logo from '../../logo.svg';
@@ -143,7 +144,7 @@ export default function ChatBox({ onDocsChange = () => {} }: ChatBoxProps) {
   }, [messages, bottom]);
 
   return (
-    <Card className="max-w-2xl w-full h-full">
+    <Card isFooterBlurred className="max-w-2xl w-full h-full">
       <CardHeader className="flex flex-row justify-between gap-2">
         <div className="flex flex-row gap-2">
           <Image alt="logo" width={32} height={32} radius="sm" src={logo} />
@@ -167,10 +168,10 @@ export default function ChatBox({ onDocsChange = () => {} }: ChatBoxProps) {
             />
           ))}
         </div>
+        <Spacer y={16} />
         <div ref={bottom} />
       </CardBody>
-      <Divider />
-      <CardFooter>
+      <CardFooter className="before:bg-white/20 border-white/30 border-1 overflow-hidden p-2 absolute rounded-2xl bottom-2 w-[calc(100%_-_16px)] shadow-medium mx-2 z-10">
         <form
           className="flex flex-row w-full gap-2"
           onSubmit={handleSubmitInput}
