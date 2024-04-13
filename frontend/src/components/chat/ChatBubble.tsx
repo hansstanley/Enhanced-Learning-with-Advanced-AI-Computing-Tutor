@@ -14,12 +14,14 @@ export default function ChatBubble({
   const isLoaded = !!message;
   return (
     <Card
-      className={isUser ? 'self-end ml-4 bg-primary-50' : 'self-start mr-4'}
+      className={`max-w-[calc(100%_-_1rem)] ${isUser ? 'self-end ml-4 bg-primary-50' : 'self-start mr-4'}`}
     >
       <CardBody>
         <Skeleton isLoaded={isLoaded} className="rounded-md">
           {isLoaded || <p className="text-base">Loading...</p>}
-          <Markdown remarkPlugins={[remarkGfm]}>{message}</Markdown>
+          <Markdown remarkPlugins={[remarkGfm]} className="prose">
+            {message}
+          </Markdown>
         </Skeleton>
       </CardBody>
     </Card>
