@@ -14,8 +14,18 @@ After installation, run `ollama run mistral:7b` (or another model of choice). Th
 
 ### Backend
 
-`TODO`
+Start the FastAPI backend with the following:
+
+```bash
+uvicorn backend:app --reload
+```
 
 ### Frontend
 
-`TODO`
+Start the ReactJS frontend with the following:
+
+```bash
+cd frontend
+npm ci
+npm start
+```
