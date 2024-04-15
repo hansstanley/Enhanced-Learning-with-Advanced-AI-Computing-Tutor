@@ -3,6 +3,7 @@ from langchain.chains import (
     create_retrieval_chain,
 )
 from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.globals import set_debug
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_community.chat_models import ChatOllama
 from langchain_core.chat_history import BaseChatMessageHistory
@@ -11,7 +12,9 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 
 import helpsheet_retriever
 
-llm = ChatOllama(model="mistral:7b")
+set_debug(True)
+
+llm = ChatOllama(model="llama2:7b")
 
 retriever = helpsheet_retriever.get_retriever(compress=False)
 
@@ -34,10 +37,8 @@ history_aware_retriever = create_history_aware_retriever(
 
 qa_system_prompt = """You are an computer science tutor \
 for question-answering tasks. \
-Use the following pieces of retrieved context to answer the question. \
-If it's a question about definition, use five sentences maximum and \
-keep the answer concise.\
-If it's a problem-solving questions, answer in the format: ###
+For questions about definition, be as concise as possible. \
+For problem-solving questions, answer in the format: ###
 Hint:
 (list of hints)
 Possible Solution:

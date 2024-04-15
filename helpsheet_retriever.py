@@ -2,7 +2,8 @@ import os
 
 import chromadb
 from langchain.retrievers import ContextualCompressionRetriever
-from langchain.retrievers.document_compressors import LLMChainExtractor
+from langchain.retrievers.document_compressors import LLMChainFilter
+from langchain.retrievers.multi_query import MultiQueryRetriever
 from langchain.tools.retriever import create_retriever_tool
 from langchain_community.chat_models import ChatOllama
 from langchain_community.document_loaders import PyPDFLoader
@@ -81,25 +82,31 @@ def get_vectorstore():
     )
 
 
-def get_retriever(compress=True):
-    base_retriever = get_vectorstore().as_retriever(search_kwargs={"k": 3})
-    if not compress:
-        return base_retriever
-
-    # multi query retriever adapted from
-    # https://python.langchain.com/docs/modules/data_connection/retrievers/MultiQueryRetriever/
-    # mq_retriever = MultiQueryRetriever.from_llm(
-    #     retriever=base_retriever,
-    #     llm=llm,
-    # )
-
-    # contextual compression adapted from
-    # https://python.langchain.com/docs/modules/data_connection/retrievers/contextual_compression/
-    compressor = LLMChainExtractor.from_llm(llm)
-    return ContextualCompressionRetriever(
-        base_compressor=compressor,
-        base_retriever=base_retriever,
+def get_retriever(multi_query=True, compress=True):
+    retriever = get_vectorstore().as_retriever(
+        search_type="mmr", search_kwargs={"k": 1 if multi_query else 3}
     )
+
+    if multi_query:
+        # multi query retriever adapted from
+        # https://python.langchain.com/docs/modules/data_connection/retrievers/MultiQueryRetriever/
+        retriever = MultiQueryRetriever.from_llm(
+            retriever=retriever,
+            llm=llm,
+            include_original=True,
+        )
+
+    if compress:
+        # contextual compression adapted from
+        # https://python.langchain.com/docs/modules/data_connection/retrievers/contextual_compression/
+        # compressor = LLMChainExtractor.from_llm(llm)
+        compressor = LLMChainFilter.from_llm(llm)
+        retriever = ContextualCompressionRetriever(
+            base_compressor=compressor,
+            base_retriever=retriever,
+        )
+
+    return retriever
 
 
 def get_retriever_tool():
