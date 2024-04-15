@@ -24,7 +24,9 @@ export default function PdfBox({ docs }: PdfBoxProps) {
             : docs.map((d, i) => (
                 <Tab key={i} title={`Source ${i + 1}`}>
                   <PdfView
-                    file={require(`../../${d.source}`)}
+                    file={require(
+                      `../../documents/training_set/${d.source?.split('/').pop()}`
+                    )}
                     defaultPage={d.page}
                   />
                 </Tab>
