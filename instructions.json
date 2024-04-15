@@ -27,12 +27,16 @@
           "Is the explanation easy to understand? let me know if you have any doubts or clarifications.",
           "Do you need me to explain any parts again?",
           "Did you have any questions?"
-        ],
+        ]
+      },
+      {
         "concern": "Syllabus",
         "description": "Tutors will be concerned if student's query or tutor output is within syllabus",
         "when_to_question": "Before any output",
         "how_to_question": "Explain that query is out of syllabus",
-        "possible_outputs": ["Hmm, this problem seems to be out of syllabus."],
+        "possible_outputs": ["Hmm, this problem seems to be out of syllabus."]
+      },
+      {
         "concern": "Student's question type",
         "description": "Tutors will be concerned with providing clear explanation to student's question",
         "when_to_question": "Before any output",

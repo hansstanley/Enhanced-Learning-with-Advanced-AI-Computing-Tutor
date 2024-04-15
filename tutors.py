@@ -1,3 +1,4 @@
+import json
 from typing import AsyncIterable, Iterable
 
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -61,6 +62,7 @@ class TutorWithHistoryRAG(TutorBase):
         model="llama2:7b",
         multi_query=False,
         compress=False,
+        qa_prompt: ChatPromptTemplate | None = None,
     ) -> None:
         self.llm = ChatOllama(model=model)
         self.store = {}
@@ -104,7 +106,7 @@ class TutorWithHistoryRAG(TutorBase):
         {context}
         ###
         """
-        qa_prompt = ChatPromptTemplate.from_messages(
+        qa_prompt = qa_prompt or ChatPromptTemplate.from_messages(
             [
                 ("system", qa_system_prompt),
                 MessagesPlaceholder(variable_name="chat_history"),
@@ -135,3 +137,40 @@ class TutorWithHistoryRAG(TutorBase):
         if session_id not in self.store:
             self.store[session_id] = ChatMessageHistory()
         return self.store[session_id]
+
+
+class TutorWithJsonPrompt(TutorWithHistoryRAG):
+    def __init__(
+        self,
+        model="llama2:7b",
+        multi_query=False,
+        compress=False,
+    ) -> None:
+        qa_system_prompt = """Content and concepts to be considered: ###
+        {context}
+        ###
+
+        Your AI role description JSON as the Computer Science tutor \
+        at the National University of Singapore is given below, \
+        ensure your output is with reference to your role description: ###
+        {instructions}
+        ###
+
+        Refresh on the content and "AI Role Description" JSON from above. \
+        If you have understood your AI role description as \
+        the Computer Science Tutor at National University of Singapore, \
+        continue the conversation below. Do not break character and \
+        check your output against the provided AI role description. \
+        Ensure your output fits in well with conversation history below.
+        """
+        qa_prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", qa_system_prompt),
+                MessagesPlaceholder(variable_name="chat_history"),
+                ("human", "{input}"),
+            ]
+        )
+        with open("instructions.json") as f:
+            qa_prompt = qa_prompt.partial(instructions=json.load(f))
+
+        super().__init__(model, multi_query, compress, qa_prompt)
