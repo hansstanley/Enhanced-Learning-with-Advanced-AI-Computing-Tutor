@@ -122,6 +122,6 @@ if __name__ == "__main__":
     reset = reset_ans.strip().lower() == "y"
     # takes a long time
     index_docs_from_dir(
-        r"documents/helpsheet collection",
+        r"frontend/src/documents/training_set",
         reset=reset,
     )
