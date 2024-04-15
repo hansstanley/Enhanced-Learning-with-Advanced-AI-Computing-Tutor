@@ -25,7 +25,7 @@ import helpsheet_retriever
 
 # mistral seems to perform better than llama2
 # in following agent instructions
-llm = ChatOllama(model="mistral:7b")
+llm = ChatOllama(model="llama2:7b")
 
 #########################
 # Define retrieval tool #
@@ -67,13 +67,14 @@ agent_with_chat_history = RunnableWithMessageHistory(
     history_messages_key="chat_history",
 )
 
-while True:
-    query = input("\nQuery: ").strip()
-    if not query:
-        break
-    answer = agent_with_chat_history.invoke(
-        {"input": query},
-        {"configurable": {"session_id": "abc123"}},
-    )
-    print("Answer:", answer)
-# print(message_history)
+if __name__ == "__main__":
+    while True:
+        query = input("\nQuery: ").strip()
+        if not query:
+            break
+        answer = agent_with_chat_history.invoke(
+            {"input": query},
+            {"configurable": {"session_id": "abc123"}},
+        )
+        print("Answer:", answer)
+    # print(message_history)

@@ -84,7 +84,7 @@ def get_vectorstore():
 
 def get_retriever(multi_query=True, compress=True):
     retriever = get_vectorstore().as_retriever(
-        search_type="mmr", search_kwargs={"k": 1 if multi_query else 3}
+        search_type="mmr", search_kwargs={"k": 3}
     )
 
     if multi_query:

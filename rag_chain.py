@@ -1,3 +1,5 @@
+import json
+
 from langchain.chains import (
     create_history_aware_retriever,
     create_retrieval_chain,
@@ -35,23 +37,46 @@ history_aware_retriever = create_history_aware_retriever(
     llm, retriever, contextualize_q_prompt
 )
 
-qa_system_prompt = """You are an computer science tutor \
-for question-answering tasks. \
-For questions about definition, be as concise as possible. \
-For problem-solving questions, answer in the format: ###
-Hint:
-(list of hints)
-Possible Solution:
-(solution) ###
-DO NOT answer any questions in the context.\
-You may use your own knowledge as well, but you need to state clearly \
-which part is from your own knowledge. Do not mention "the context". \
-If you don't know the answer or the question is NOT RELEVANT to \
-Data Structure or Algorithms, just say this single sentence \
-"Hmm, this problem seems to be out of syllabus. \
-Please further check with your tutor." Refrain from making up an answer. \
+qa_system_prompt = """Computing Concepts to be considered: ###
+{context}
+###
 
-{context}"""
+[INSTRUCTIONS] Your AI role description JSON as the Computer Science tutor \
+at the National University of Singapore is given below, \
+ensure your output is with reference to your role description as stated below:
+###
+{instructions}
+###
+
+Reminder, you are the Computer Science Tutor at \
+National University of Singapore, ensure your output is with reference to \
+content provided and your role description json above. 
+
+Refresh on the content and  "AI Role Description" JSON. \
+If you have understood your AI role description as \
+the Computer Science Tutor at National University of Singapore, \
+continue the conversation below. Do not break character and \
+check your output against the provided AI role description. \
+Ensure your output fits in well with conversation history below.
+"""
+# qa_system_prompt = """You are an computer science tutor \
+# for question-answering tasks. \
+# For questions about definition, be as concise as possible. \
+# For problem-solving questions, answer in the format: ###
+# Hint:
+# (list of hints)
+# Possible Solution:
+# (solution) ###
+# DO NOT answer any questions in the context. \
+# You may use your own knowledge as well, but you need to state clearly \
+# which part is from your own knowledge. Do not mention "the context". \
+# If you don't know the answer or the question is NOT RELEVANT to \
+# Data Structure or Algorithms, just say this single sentence \
+# "Hmm, this problem seems to be out of syllabus. \
+# Please further check with your tutor." Refrain from making up an answer. \
+
+# Context: ###
+# {context} ###"""
 qa_prompt = ChatPromptTemplate.from_messages(
     [
         ("system", qa_system_prompt),
@@ -59,6 +84,11 @@ qa_prompt = ChatPromptTemplate.from_messages(
         ("human", "{input}"),
     ]
 )
+
+with open("instructions.json") as f:
+    d = json.load(f)
+    qa_prompt = qa_prompt.partial(instructions=d)
+
 question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
 
 rag_chain = create_retrieval_chain(
