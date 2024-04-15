@@ -1,9 +1,8 @@
-import asyncio
 import typing
 
 from pydantic import BaseModel
 
-import rag_chain
+import tutors
 
 
 class ChatRequest(BaseModel):
@@ -23,16 +22,18 @@ class DocResponse(BaseModel):
     docs: typing.List[DocMeta]
 
 
-async def fake_answer(message: str) -> typing.AsyncGenerator[str, None]:
-    answer = "Minim enim Lorem eiusmod et consectetur voluptate."
-    for chunk in [*message.split(), *answer.split()]:
-        await asyncio.sleep(0.1)
-        yield " " + chunk
-
-
 class Assistant:
+    def __init__(self) -> None:
+        # works
+        self.tutor = tutors.TutorBase()
+        # self.tutor = tutors.TutorWithHistoryRAG(multi_query=True)
+        # self.tutor = tutors.TutorWithJsonPrompt(multi_query=True)
+
+        # doesn't work
+        # self.tutor = tutors.TutorWithAgent(model="mistral:7b")
+
     async def query(self, message: str, use_agent=False):
-        stream = await rag_chain.query(message)
+        stream = await self.tutor.query(message)
         docs = []
         first_ans = ""
         while (chunk := await anext(stream, None)) is not None:
@@ -62,4 +63,4 @@ class Assistant:
         return docs, answer_stream()
 
     async def clear_history(self):
-        rag_chain.clear_history()
+        self.tutor.clear_history()

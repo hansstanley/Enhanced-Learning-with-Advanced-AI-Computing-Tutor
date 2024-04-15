@@ -1,14 +1,24 @@
 import json
+from typing import Any, List, Literal
 
-from langchain.chains import (
-    create_history_aware_retriever,
-    create_retrieval_chain,
-)
 from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains.history_aware_retriever import (
+    create_history_aware_retriever,
+)
+from langchain.chains.retrieval import create_retrieval_chain
 from langchain.globals import set_debug
-from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain_community.chat_models import ChatOllama
+from langchain_community.chat_message_histories.in_memory import (
+    ChatMessageHistory,
+)
+from langchain_community.chat_models.ollama import ChatOllama
 from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.messages import (
+    AIMessage,
+    BaseMessage,
+    HumanMessage,
+    get_buffer_string,
+)
+from langchain_core.prompt_values import ChatPromptValue, PromptValue
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 
@@ -16,9 +26,80 @@ import helpsheet_retriever
 
 set_debug(True)
 
+
+class StudentMessage(HumanMessage):
+    type: Literal["student"] = "student"
+
+
+class TutorMessage(AIMessage):
+    type: Literal["tutor"] = "tutor"
+
+
+class CustomPromptValue(ChatPromptValue):
+    ai_prefix = "Tutor"
+    human_prefix = "Student"
+
+    def to_string(self) -> str:
+        print("BOOM CustomPromptValue to_string")
+        return get_buffer_string(
+            self.messages,
+            ai_prefix=self.ai_prefix,
+            human_prefix=self.human_prefix,
+        )
+
+
+class CustomPromptTemplate(ChatPromptTemplate):
+    def format_prompt(self, **kwargs: Any) -> PromptValue:
+        return CustomPromptValue(messages=self.format_messages(**kwargs))
+
+    async def aformat_prompt(self, **kwargs: Any) -> PromptValue:
+        return CustomPromptValue(
+            messages=await self.aformat_messages(**kwargs),
+        )
+
+
+class CustomHistory(ChatMessageHistory):
+    ai_prefix = "Tutor"
+    human_prefix = "Student"
+
+    def __str__(self) -> str:
+        print("BOOM custom history __str__")
+        return get_buffer_string(
+            self.messages,
+            ai_prefix=self.ai_prefix,
+            human_prefix=self.human_prefix,
+        )
+
+
+def convert_message(message: BaseMessage):
+    print("BOOM converting message", type(message), message)
+    if isinstance(message, HumanMessage):
+        return StudentMessage(content=message.content)
+    if isinstance(message, AIMessage):
+        return TutorMessage(content=message.content)
+    else:
+        return message
+
+
+class CustomMessagesPlaceholder(MessagesPlaceholder):
+    def format_messages(self, **kwargs: Any) -> List[BaseMessage]:
+        print("BOOM CustomMessagesPlaceholder format_messages")
+        messages = super().format_messages(**kwargs)
+        return list(map(convert_message, messages))
+
+    def __add__(self, other: Any) -> ChatPromptTemplate:
+        prompt = CustomPromptTemplate(
+            messages=[self],
+        )  # type: ignore[call-arg]
+        return prompt + other
+
+
 llm = ChatOllama(model="llama2:7b")
 
-retriever = helpsheet_retriever.get_retriever(compress=False)
+retriever = helpsheet_retriever.get_retriever(
+    compress=False,
+    multi_query=False,
+)
 
 # Contextualize question
 contextualize_q_system_prompt = """Given a chat history and \
@@ -77,10 +158,10 @@ Ensure your output fits in well with conversation history below.
 
 # Context: ###
 # {context} ###"""
-qa_prompt = ChatPromptTemplate.from_messages(
+qa_prompt = CustomPromptTemplate.from_messages(
     [
         ("system", qa_system_prompt),
-        MessagesPlaceholder("chat_history"),
+        CustomMessagesPlaceholder(variable_name="chat_history"),
         ("human", "{input}"),
     ]
 )
@@ -101,7 +182,7 @@ store = {}
 
 def get_session_history(session_id: str) -> BaseChatMessageHistory:
     if session_id not in store:
-        store[session_id] = ChatMessageHistory()
+        store[session_id] = CustomHistory()
     return store[session_id]
 
 

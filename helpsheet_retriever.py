@@ -109,9 +109,9 @@ def get_retriever(multi_query=True, compress=True):
     return retriever
 
 
-def get_retriever_tool():
+def get_retriever_tool(multi_query=True, compress=True):
     return create_retriever_tool(
-        get_retriever(),
+        get_retriever(multi_query=multi_query, compress=compress),
         COLLECTION_NAME,
         COLLECTION_DESC,
     )
