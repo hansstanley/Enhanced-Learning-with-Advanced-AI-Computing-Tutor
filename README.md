@@ -1,4 +1,4 @@
-# CS Tutor
+# Enhanced Learning with Advanced AI Computing Tutor
 
 ## Description
 
